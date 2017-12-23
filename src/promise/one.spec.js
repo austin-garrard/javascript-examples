@@ -1,4 +1,4 @@
-import {ColorService} from './one';
+import {ColorService} from './colorService';
 
 describe('promise', () => {
   it('gives a value to a function', (done) => {
@@ -84,7 +84,7 @@ describe('ColorService', () => {
   it('looks up an address', () => {
     colorService.getColors()
       .then(json => {
-        expect(json).toEqual('hi');
+        expect(json.colors).toEqual(['red', 'green', 'blue', 'purple']);
       });
   })
 });

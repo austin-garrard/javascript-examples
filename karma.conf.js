@@ -41,19 +41,6 @@ module.exports = function(config) {
       stats: 'errors-only'
     },
 
-    // babelPreprocessor: {
-    //   options: {
-    //     presets: ['es2015'], // use the es2015 preset
-    //     sourceMap: 'inline' // inline source maps inside compiled files
-    //   },
-    //   filename: function (file) {
-    //     return file.originalPath.replace(/\.js$/, '.es5.js');
-    //   },
-    //   sourceFileName: function (file) {
-    //     return file.originalPath;
-    //   }
-    // },
-
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
