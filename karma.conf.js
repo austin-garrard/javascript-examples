@@ -1,5 +1,6 @@
 // Karma configuration
 // Generated on Fri Dec 22 2017 21:47:30 GMT-0500 (EST)
+var path = require('path');
 
 module.exports = function(config) {
   config.set({
@@ -15,7 +16,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'src/**/*.spec.js'
+      'src/allSpecs.js'
     ],
 
 
@@ -27,27 +28,37 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      'src/**/*.spec.js': ['babel']
+      'src/allSpecs.js': ['webpack', 'sourcemap']
     },
 
-    babelPreprocessor: {
-      options: {
-        presets: ['es2015'], // use the es2015 preset
-        sourceMap: 'inline' // inline source maps inside compiled files
-      },
-      filename: function (file) {
-        return file.originalPath.replace(/\.js$/, '.es5.js');
-      },
-      sourceFileName: function (file) {
-        return file.originalPath;
-      }
+    webpack: {
+      devtool: 'inline-source-map'
     },
+
+    webpackMiddleware: {
+      // webpack-dev-middleware configuration
+      // i. e.
+      stats: 'errors-only'
+    },
+
+    // babelPreprocessor: {
+    //   options: {
+    //     presets: ['es2015'], // use the es2015 preset
+    //     sourceMap: 'inline' // inline source maps inside compiled files
+    //   },
+    //   filename: function (file) {
+    //     return file.originalPath.replace(/\.js$/, '.es5.js');
+    //   },
+    //   sourceFileName: function (file) {
+    //     return file.originalPath;
+    //   }
+    // },
 
 
     // test results reporter to use
     // possible values: 'dots', 'progress'
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ['mocha'],
 
 
     // web server port
@@ -69,7 +80,7 @@ module.exports = function(config) {
 
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome'],
+    browsers: ['ChromeHeadless'],
 
 
     // Continuous Integration mode
