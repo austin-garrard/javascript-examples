@@ -9,44 +9,26 @@ class FakeResponse {
   }
 }
 
-const responses = {
-  '/colors': new FakeResponse(true, {
-    colors: ['red', 'green', 'blue', 'purple']
-  }),
-
-  '/colors?badQuery=oops': new FakeResponse(false, {
-    error: {
-      message: 'connection error!'
-    }
-  }),
-
-  '/colors/purple': new FakeResponse(false, {
-    error: {
-      message: 'it can\'t get more cool'
-    }
-  })
-};
-
-const resolveOrReject = (response, resolve) => {
-  if (resolve) {
-    return Promise.resolve(response);
-  } else {
-    return Promise.reject(response)
-  }
+export function aGoodResponse(value) {
+  return Promise.resolve(new FakeResponse(true, value));
 }
 
+export function aBadResponse(value) {
+  return Promise.resolve(new FakeResponse(false, value));
+}
+
+export function anError(message) {
+  return Promise.reject(new Error(message));
+}
+
+
 class FakeHttp {
-
-  constructor() {
-    this.resolve = true;
-  }
-
   get(url) {
-    return resolveOrReject(responses[url], this.resolve);
+    throw new Error('implement or spy on me to return a promise that resolves with a response or a promise that rejects with an error');
   }
 
   post(url, data) {
-    return resolveOrReject(responses[url], this.resolve);
+    throw new Error('implement or spy on me to return a promise that resolves with a response or a promise that rejects with an error');
   }
 }
 

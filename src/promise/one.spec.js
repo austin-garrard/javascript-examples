@@ -46,7 +46,7 @@ describe('promise', () => {
         expect()
       })
       .finally(done)
-  })
+  });
 
   it('is asynchronous', (done) => {
     Promise.resolve('value')

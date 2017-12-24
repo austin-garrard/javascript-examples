@@ -8,6 +8,7 @@
     "test": "./node_modules/karma/bin/karma start"
   },
   "devDependencies": {
+    "@types/jasmine": "^2.8.2",
     "jasmine": "^2.8.0",
     "karma": "^2.0.0",
     "karma-chrome-launcher": "^2.2.0",

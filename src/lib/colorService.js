@@ -2,16 +2,21 @@ import {http} from './fakeHttp'
 
 export class ColorService {
   getColors() {
-    return http.get('/colors')
-      .then(response => response.json())
-      .catch(error => ({ error: 'connection error' }));
+    return http.get('/colors');
   }
 
-  changeColor(color) {
-    const requestBody = {
+  makeColorCooler(color) {
+    return http.post(`/colors/${color}`, {
       change: 'make it more cool'
-    };
+    });
+  }
 
-    return http.post(`/colors/${color}`, requestBody);
+  makeAllColorsCooler() {
+    const parseJson = response => response.json();
+    return this.getColors()
+      .then(parseJson)
+      .then(responseBody  => responseBody.colors)
+      .then(colors        => Promise.all(colors.map(this.makeColorCooler)))
+      .then(responses     => Promise.all(responses.map(parseJson)))
   }
 }
