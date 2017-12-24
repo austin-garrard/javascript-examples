@@ -1,6 +1,6 @@
-import {ColorService} from '../lib/colorService';
-import {anError, aGoodResponse, http, aBadResponse} from '../lib/fakeHttp'
-import {testPromise} from '../lib/testUtil';
+import {ColorService} from './colorService';
+import {anError, aGoodResponse, http, aBadResponse} from './fakeHttp'
+import {testPromise} from '../../lib/testUtil';
 
 describe('ColorService', () => {
   let colorService;
