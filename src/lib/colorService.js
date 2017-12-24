@@ -1,5 +1,7 @@
 import {http} from './fakeHttp'
 
+const parseJson = response => response.json();
+
 export class ColorService {
   getColors() {
     return http.get('/colors');
@@ -11,8 +13,21 @@ export class ColorService {
     });
   }
 
+  createColor(color) {
+    const createColor = () => http.post('/colors', {
+      color: {
+        name: color
+      }
+    });
+    const error = () => new Error(color + 'already exists');
+
+    return this.getColors()
+      .then(parseJson)
+      .then(responseBody => responseBody.colors.includes(color))
+      .then(colorExists => colorExists ? error() : createColor())
+  }
+
   makeAllColorsCooler() {
-    const parseJson = response => response.json();
     return this.getColors()
       .then(parseJson)
       .then(responseBody  => responseBody.colors)

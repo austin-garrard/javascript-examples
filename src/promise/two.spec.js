@@ -39,7 +39,7 @@ describe('ColorService', () => {
         })
     }));
 
-    it('allows you to catch errors which caused the request to not complete', testPromise(() => {
+    it('allows you to catch fatal errors which caused the request to not complete', testPromise(() => {
       spyOn(http, 'get').and.returnValue(anError('connection error'));
 
       return colorService.getColors()
@@ -77,7 +77,7 @@ describe('ColorService', () => {
         })
     }));
 
-    it('allows you to catch errors which caused the request to not complete', testPromise(() => {
+    it('allows you to catch fatal errors which caused the request to not complete', testPromise(() => {
       spyOn(http, 'get').and.returnValue(anError('connection error'));
 
       return colorService.getColors()
@@ -87,48 +87,132 @@ describe('ColorService', () => {
     }));
   });
 
-  describe('change all colors', () => {
-    beforeEach(() => {
-      spyOn(http, 'get').and.returnValue(aGoodResponse({colors: ['red', 'green', 'blue', 'purple']}));
-      spyOn(http, 'post').and.returnValues(
-        aGoodResponse({message: 'red was made cooler'}),
-        aGoodResponse({message: 'green was made cooler'}),
-        aGoodResponse({message: 'blue was made cooler'}),
-        aGoodResponse({error: {message: 'purple can\'t get more cool'}})
-      );
+  describe('createColor', () => {
+    describe('color already exists', () => {
+      it('throws an error that must be caught', testPromise(() => {
+        spyOn(http, 'get').and.returnValue(aGoodResponse({
+          colors: ['red', 'green', 'blue', 'purple']
+        }));
+
+        return colorService.createColor('purple')
+          .catch(error => {
+            expect(error.message).toEqual('purple already exists');
+          });
+      }));
     });
 
-    it('gets the colors', testPromise(() => {
-      return colorService.makeAllColorsCooler()
-        .then(() => {
-          expect(http.get).toHaveBeenCalledWith('/colors');
-        })
-    }));
+    describe('color does not exist', () => {
+      it('creates a color', testPromise(() => {
+        spyOn(http, 'get').and.returnValue(aGoodResponse({
+          colors: ['red', 'green', 'blue', 'purple']
+        }));
+        spyOn(http, 'post').and.returnValue(aGoodResponse({
+          success: true
+        }));
 
-    it('makes each color cooler', testPromise(() => {
-      return colorService.makeAllColorsCooler()
-        .then(() => {
-          expect(http.post).toHaveBeenCalledWith('/colors/red', {change: 'make it more cool'});
-          expect(http.post).toHaveBeenCalledWith('/colors/green', {change: 'make it more cool'});
-          expect(http.post).toHaveBeenCalledWith('/colors/blue', {change: 'make it more cool'});
-          expect(http.post).toHaveBeenCalledWith('/colors/purple', {change: 'make it more cool'});
-        })
-    }));
+        return colorService.createColor('orange')
+          .then(response => response.json())
+          .then(responseBody => {
+            expect(responseBody).toEqual({success: true});
+          })
+      }));
+    });
 
-    it('combines the responses for changing the color', testPromise(() => {
-      return colorService.makeAllColorsCooler()
-        .then(result => {
-          expect(result).toEqual([
-            {message: 'red was made cooler'},
-            {message: 'green was made cooler'},
-            {message: 'blue was made cooler'},
-            {
-              error: {
-                message: 'purple can\'t get more cool'
+    describe('error handling', () => {
+      it('fatal errors from the first http call must be caught', testPromise(() => {
+        spyOn(http, 'get').and.returnValue(anError('connection error'));
+
+        return colorService.createColor('orange')
+          .catch(error => {
+            expect(error.message).toEqual('connection error');
+          })
+      }));
+
+      it('fatal errors from the second http call must be caught', testPromise(() => {
+        spyOn(http, 'get').and.returnValue(aGoodResponse({
+          colors: ['red', 'green', 'blue', 'purple']
+        }));
+        spyOn(http, 'post').and.returnValue(anError('connection error'));
+
+        return colorService.createColor('orange')
+          .catch(error => {
+            expect(error.message).toEqual('connection error');
+          })
+      }));
+    });
+  });
+
+  describe('makeAllColorsCooler', () => {
+    describe('happy path', () => {
+      beforeEach(() => {
+        spyOn(http, 'get').and.returnValue(aGoodResponse({colors: ['red', 'green', 'blue', 'purple']}));
+        spyOn(http, 'post').and.returnValues(
+          aGoodResponse({message: 'red was made cooler'}),
+          aGoodResponse({message: 'green was made cooler'}),
+          aGoodResponse({message: 'blue was made cooler'}),
+          aGoodResponse({error: {message: 'purple can\'t get more cool'}})
+        );
+      });
+
+      it('gets the colors', testPromise(() => {
+        return colorService.makeAllColorsCooler()
+          .then(() => {
+            expect(http.get).toHaveBeenCalledWith('/colors');
+          })
+      }));
+
+      it('makes each color cooler', testPromise(() => {
+        return colorService.makeAllColorsCooler()
+          .then(() => {
+            expect(http.post).toHaveBeenCalledWith('/colors/red', {change: 'make it more cool'});
+            expect(http.post).toHaveBeenCalledWith('/colors/green', {change: 'make it more cool'});
+            expect(http.post).toHaveBeenCalledWith('/colors/blue', {change: 'make it more cool'});
+            expect(http.post).toHaveBeenCalledWith('/colors/purple', {change: 'make it more cool'});
+          })
+      }));
+
+      it('combines the responses for making the colors cooler', testPromise(() => {
+        return colorService.makeAllColorsCooler()
+          .then(result => {
+            expect(result).toEqual([
+              {message: 'red was made cooler'},
+              {message: 'green was made cooler'},
+              {message: 'blue was made cooler'},
+              {
+                error: {
+                  message: 'purple can\'t get more cool'
+                }
               }
-            }
-          ]);
-        })
-    }));
+            ]);
+          })
+      }));
+
+    });
+
+    describe('error handling', () => {
+      it('fatal errors from the first http call must be caught', testPromise(() => {
+        spyOn(http, 'get').and.returnValue(anError('connection error'));
+
+        return colorService.makeAllColorsCooler()
+          .catch(error => {
+            expect(error.message).toEqual('connection error');
+          })
+      }));
+
+      it('fatal errors from the subsequent http calls must be caught', testPromise(() => {
+        spyOn(http, 'get').and.returnValue(aGoodResponse({colors: ['red', 'green', 'blue', 'purple']}));
+        spyOn(http, 'post').and.returnValues(
+          aGoodResponse({message: 'red was made cooler'}),
+          aGoodResponse({message: 'green was made cooler'}),
+          anError('connection error'),
+          aGoodResponse({error: {message: 'purple can\'t get more cool'}})
+        );
+
+        return colorService.makeAllColorsCooler()
+          .catch(error => {
+            expect(error.message).toEqual('connection error');
+          })
+      }));
+    });
   });
 });
