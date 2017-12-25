@@ -1,23 +1,22 @@
 import {testPromise} from '../../lib/testUtil';
-import {allLowerCase, alwaysFails, alwaysFails2, alwaysPasses, notNull, ValidationComposer} from './validation';
+import {allLowerCase, alwaysFails, alwaysFails2, alwaysPasses, notNull} from './validations';
+import {ValidationComposerWithPromises} from './validationComposerWithPromises';
 
-describe('validations', () => {
+describe('ValidationComposerWithPromises', () => {
   describe('primary validations', () => {
     it('proceeds when all primary validations pass', testPromise(() => {
-      return new ValidationComposer([notNull, alwaysPasses]).validate('hello')
+      return new ValidationComposerWithPromises([notNull, alwaysPasses]).validate('hello')
         .then(result => {
           expect(result).toEqual(true);
         })
         .catch(() => {
-          console.log('skipped');
           expect(true).toEqual(false);
         })
     }));
 
     it('throws when any primary validations fail', testPromise(() => {
-      return new ValidationComposer([notNull, alwaysPasses]).validate(null)
+      return new ValidationComposerWithPromises([notNull, alwaysPasses]).validate(null)
         .then(() => {
-          console.log('skipped');
           expect(true).toEqual(false);
         })
         .catch(errors => {
@@ -26,9 +25,8 @@ describe('validations', () => {
     }));
 
     it('reports all primary validations that fail', testPromise(() => {
-      return new ValidationComposer([notNull, alwaysPasses, alwaysFails]).validate(null)
+      return new ValidationComposerWithPromises([notNull, alwaysPasses, alwaysFails]).validate(null)
         .then(() => {
-          console.log('skipped');
           expect(true).toEqual(false);
         })
         .catch(errors => {
@@ -39,9 +37,8 @@ describe('validations', () => {
 
   describe('secondary validations', () => {
     it('is run when all primary validations pass', testPromise(() => {
-      return new ValidationComposer([notNull, alwaysPasses], [alwaysFails]).validate('value')
+      return new ValidationComposerWithPromises([notNull, alwaysPasses], [alwaysFails]).validate('value')
         .then(() => {
-          console.log('skipped');
           expect(true).toEqual(false);
         })
         .catch(errors => {
@@ -53,9 +50,8 @@ describe('validations', () => {
       spyOn(alwaysPasses, 'pass');
       spyOn(alwaysFails2, 'pass');
 
-      return new ValidationComposer([notNull, alwaysFails], [alwaysPasses, alwaysFails2]).validate('value')
+      return new ValidationComposerWithPromises([notNull, alwaysFails], [alwaysPasses, alwaysFails2]).validate('value')
         .then(() => {
-          console.log('skipped');
           expect(true).toEqual(false);
         })
         .catch(errors => {
@@ -66,20 +62,18 @@ describe('validations', () => {
     }));
 
     it('proceeds when all primary and secondary validations pass', testPromise(() => {
-      return new ValidationComposer([notNull, alwaysPasses], [allLowerCase, alwaysPasses]).validate('value')
+      return new ValidationComposerWithPromises([notNull, alwaysPasses], [allLowerCase, alwaysPasses]).validate('value')
         .then(result => {
           expect(result).toEqual(true);
         })
         .catch(errors => {
-          console.log('skipped');
           expect(true).toEqual(false);
         });
     }));
 
     it('throws when any secondary validations fail', testPromise(() => {
-      return new ValidationComposer([notNull, alwaysPasses], [allLowerCase, alwaysPasses]).validate('VaLuE')
+      return new ValidationComposerWithPromises([notNull, alwaysPasses], [allLowerCase, alwaysPasses]).validate('VaLuE')
         .then(result => {
-          console.log('skipped');
           expect(true).toEqual(false);
         })
         .catch(errors => {
@@ -88,9 +82,8 @@ describe('validations', () => {
     }));
 
     it('reports all secondary validations that fail', testPromise(() => {
-      return new ValidationComposer([notNull, alwaysPasses], [allLowerCase, alwaysFails2]).validate('VaLuE')
+      return new ValidationComposerWithPromises([notNull, alwaysPasses], [allLowerCase, alwaysFails2]).validate('VaLuE')
         .then(result => {
-          console.log('skipped');
           expect(true).toEqual(false);
         })
         .catch(errors => {
