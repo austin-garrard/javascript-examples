@@ -30,6 +30,7 @@ describe('ColorService', () => {
       return colorService.getColors()
         .then(response => {
           expect(response.ok).toEqual(false);
+          expect(response.status).toEqual(400);
           return response.json();
         })
         .then(responseBody => {
@@ -68,6 +69,7 @@ describe('ColorService', () => {
       return colorService.makeColorCooler('red')
         .then(response => {
           expect(response.ok).toEqual(false);
+          expect(response.status).toEqual(400);
           return response.json();
         })
         .then(responseBody => {

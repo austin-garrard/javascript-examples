@@ -1,7 +1,8 @@
 class FakeResponse {
-  constructor(ok, value) {
+  constructor(ok, value, status = 200) {
     this.value = value;
     this.ok = ok;
+    this.status = status;
   }
 
   json() {
@@ -9,12 +10,12 @@ class FakeResponse {
   }
 }
 
-export function aGoodResponse(value) {
-  return Promise.resolve(new FakeResponse(true, value));
+export function aGoodResponse(value, status = 200) {
+  return Promise.resolve(new FakeResponse(true, value, status));
 }
 
-export function aBadResponse(value) {
-  return Promise.resolve(new FakeResponse(false, value));
+export function aBadResponse(value, status = 400) {
+  return Promise.resolve(new FakeResponse(false, value, status));
 }
 
 export function anError(message) {
