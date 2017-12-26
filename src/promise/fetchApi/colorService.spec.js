@@ -1,5 +1,5 @@
 import {ColorService} from './colorService';
-import {anError, aGoodResponse, http, aBadResponse} from './fakeHttp'
+import {anError, aGoodResponse, aBadResponse} from './fakeResponse'
 import {testPromise} from '../../lib/testUtil';
 
 describe('ColorService', () => {
@@ -7,11 +7,14 @@ describe('ColorService', () => {
 
   beforeEach(() => {
     colorService = new ColorService();
+    global.fetch = () => {
+      throw new Error('mock out global.fetch for these tests');
+    };
   });
 
   describe('getColors', () => {
     it('gets colors', testPromise(() => {
-      spyOn(http, 'get').and.returnValue(aGoodResponse({
+      global.fetch = jasmine.createSpy().and.returnValue(aGoodResponse({
         colors: ['red', 'green', 'blue', 'purple']
       }));
 
@@ -23,7 +26,7 @@ describe('ColorService', () => {
     }));
 
     it('allows you to inspect the response', testPromise(() => {
-      spyOn(http, 'get').and.returnValue(aBadResponse({
+      global.fetch = jasmine.createSpy().and.returnValue(aBadResponse({
         error: 'missing parameters or something'
       }));
 
@@ -41,9 +44,12 @@ describe('ColorService', () => {
     }));
 
     it('allows you to catch fatal errors which caused the request to not complete', testPromise(() => {
-      spyOn(http, 'get').and.returnValue(anError('connection error'));
+      global.fetch = jasmine.createSpy().and.returnValue(anError('connection error'));
 
       return colorService.getColors()
+        .then(() => {
+          expect(false).toEqual(true);
+        })
         .catch(error => {
           expect(error.message).toEqual('connection error');
         });
@@ -52,7 +58,7 @@ describe('ColorService', () => {
 
   describe('makeColorCooler', () => {
     it('makes the color cooler', testPromise(() => {
-      spyOn(http, 'post').and.returnValues(aGoodResponse({message: 'red was made cooler'}));
+      global.fetch = jasmine.createSpy().and.returnValues(aGoodResponse({message: 'red was made cooler'}));
 
       return colorService.makeColorCooler('red')
         .then(response => response.json())
@@ -62,7 +68,7 @@ describe('ColorService', () => {
     }));
 
     it('allows you to inspect the response', testPromise(() => {
-      spyOn(http, 'post').and.returnValue(aBadResponse({
+      global.fetch = jasmine.createSpy().and.returnValue(aBadResponse({
         error: 'missing parameters or something'
       }));
 
@@ -80,9 +86,12 @@ describe('ColorService', () => {
     }));
 
     it('allows you to catch fatal errors which caused the request to not complete', testPromise(() => {
-      spyOn(http, 'get').and.returnValue(anError('connection error'));
+      global.fetch = jasmine.createSpy().and.returnValue(anError('connection error'));
 
       return colorService.getColors()
+        .then(() => {
+          expect(false).toEqual(true);
+        })
         .catch(error => {
           expect(error.message).toEqual('connection error');
         });
@@ -92,7 +101,7 @@ describe('ColorService', () => {
   describe('createColor', () => {
     describe('color already exists', () => {
       it('throws an error that must be caught', testPromise(() => {
-        spyOn(http, 'get').and.returnValue(aGoodResponse({
+        global.fetch = jasmine.createSpy().and.returnValue(aGoodResponse({
           colors: ['red', 'green', 'blue', 'purple']
         }));
 
@@ -105,12 +114,10 @@ describe('ColorService', () => {
 
     describe('color does not exist', () => {
       it('creates a color', testPromise(() => {
-        spyOn(http, 'get').and.returnValue(aGoodResponse({
-          colors: ['red', 'green', 'blue', 'purple']
-        }));
-        spyOn(http, 'post').and.returnValue(aGoodResponse({
-          success: true
-        }));
+        global.fetch = jasmine.createSpy().and.returnValues(
+          aGoodResponse({colors: ['red', 'green', 'blue', 'purple']}),
+          aGoodResponse({success: true})
+        );
 
         return colorService.createColor('orange')
           .then(response => response.json())
@@ -122,21 +129,27 @@ describe('ColorService', () => {
 
     describe('error handling', () => {
       it('fatal errors from the first http call must be caught', testPromise(() => {
-        spyOn(http, 'get').and.returnValue(anError('connection error'));
+        global.fetch = jasmine.createSpy().and.returnValue(anError('connection error'));
 
         return colorService.createColor('orange')
+          .then(() => {
+            expect(false).toEqual(true);
+          })
           .catch(error => {
             expect(error.message).toEqual('connection error');
           })
       }));
 
       it('fatal errors from the second http call must be caught', testPromise(() => {
-        spyOn(http, 'get').and.returnValue(aGoodResponse({
-          colors: ['red', 'green', 'blue', 'purple']
-        }));
-        spyOn(http, 'post').and.returnValue(anError('connection error'));
+        global.fetch = jasmine.createSpy().and.returnValues(
+          aGoodResponse({colors: ['red', 'green', 'blue', 'purple']}),
+          anError('connection error')
+        );
 
         return colorService.createColor('orange')
+          .then(() => {
+            expect(false).toEqual(true);
+          })
           .catch(error => {
             expect(error.message).toEqual('connection error');
           })
@@ -147,8 +160,8 @@ describe('ColorService', () => {
   describe('makeAllColorsCooler', () => {
     describe('happy path', () => {
       beforeEach(() => {
-        spyOn(http, 'get').and.returnValue(aGoodResponse({colors: ['red', 'green', 'blue', 'purple']}));
-        spyOn(http, 'post').and.returnValues(
+        global.fetch = jasmine.createSpy().and.returnValues(
+          aGoodResponse({colors: ['red', 'green', 'blue', 'purple']}),
           aGoodResponse({message: 'red was made cooler'}),
           aGoodResponse({message: 'green was made cooler'}),
           aGoodResponse({message: 'blue was made cooler'}),
@@ -159,17 +172,17 @@ describe('ColorService', () => {
       it('gets the colors', testPromise(() => {
         return colorService.makeAllColorsCooler()
           .then(() => {
-            expect(http.get).toHaveBeenCalledWith('/colors');
+            expect(global.fetch).toHaveBeenCalledWith('/colors');
           })
       }));
 
       it('makes each color cooler', testPromise(() => {
         return colorService.makeAllColorsCooler()
           .then(() => {
-            expect(http.post).toHaveBeenCalledWith('/colors/red', {change: 'make it more cool'});
-            expect(http.post).toHaveBeenCalledWith('/colors/green', {change: 'make it more cool'});
-            expect(http.post).toHaveBeenCalledWith('/colors/blue', {change: 'make it more cool'});
-            expect(http.post).toHaveBeenCalledWith('/colors/purple', {change: 'make it more cool'});
+            expect(global.fetch).toHaveBeenCalledWith('/colors/red', {body: JSON.stringify({change: 'make it more cool'})});
+            expect(global.fetch).toHaveBeenCalledWith('/colors/green', {body: JSON.stringify({change: 'make it more cool'})});
+            expect(global.fetch).toHaveBeenCalledWith('/colors/blue', {body: JSON.stringify({change: 'make it more cool'})});
+            expect(global.fetch).toHaveBeenCalledWith('/colors/purple', {body: JSON.stringify({change: 'make it more cool'})});
           })
       }));
 
@@ -188,22 +201,24 @@ describe('ColorService', () => {
             ]);
           })
       }));
-
     });
 
     describe('error handling', () => {
       it('fatal errors from the first http call must be caught', testPromise(() => {
-        spyOn(http, 'get').and.returnValue(anError('connection error'));
+        global.fetch = jasmine.createSpy().and.returnValue(anError('connection error'));
 
         return colorService.makeAllColorsCooler()
+          .then(() => {
+            expect(false).toEqual(true);
+          })
           .catch(error => {
             expect(error.message).toEqual('connection error');
           })
       }));
 
       it('fatal errors from the subsequent http calls must be caught', testPromise(() => {
-        spyOn(http, 'get').and.returnValue(aGoodResponse({colors: ['red', 'green', 'blue', 'purple']}));
-        spyOn(http, 'post').and.returnValues(
+        global.fetch = jasmine.createSpy().and.returnValues(
+          aGoodResponse({colors: ['red', 'green', 'blue', 'purple']}),
           aGoodResponse({message: 'red was made cooler'}),
           aGoodResponse({message: 'green was made cooler'}),
           anError('connection error'),
@@ -211,6 +226,9 @@ describe('ColorService', () => {
         );
 
         return colorService.makeAllColorsCooler()
+          .then(() => {
+            expect(false).toEqual(true);
+          })
           .catch(error => {
             expect(error.message).toEqual('connection error');
           })

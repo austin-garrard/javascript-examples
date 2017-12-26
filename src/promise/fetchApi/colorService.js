@@ -1,30 +1,30 @@
-import {http} from './fakeHttp'
-
 const parseJson = response => response.json();
 
 export class ColorService {
   getColors() {
-    return http.get('/colors');
+    return fetch('/colors');
   }
 
   makeColorCooler(color) {
-    return http.post(`/colors/${color}`, {
-      change: 'make it more cool'
+    return fetch(`/colors/${color}`, {
+      body: JSON.stringify({change: 'make it more cool'})
     });
   }
 
   createColor(color) {
-    const createColor = () => http.post('/colors', {
-      color: {
-        name: color
-      }
+    const createColor = () => fetch('/colors', {
+      body: JSON.stringify({
+        color: {
+          name: color
+        }
+      })
     });
-    const error = () => new Error(color + 'already exists');
+    const error = () => Promise.reject(new Error(color + ' already exists'));
 
     return this.getColors()
       .then(parseJson)
-      .then(responseBody => responseBody.colors.includes(color))
-      .then(colorExists => colorExists ? error() : createColor())
+      .then(responseBody  => responseBody.colors.includes(color))
+      .then(colorExists   => colorExists ? error() : createColor())
   }
 
   makeAllColorsCooler() {
