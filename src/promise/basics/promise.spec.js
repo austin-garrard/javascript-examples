@@ -122,5 +122,84 @@ describe('promise', () => {
         .finally(done)
     });
   });
+
+  describe('reducing to a promise', () => {
+    it('executes the steps in order', (done) => {
+      const spy = jasmine.createSpy();
+      const steps = [
+        () => spy('1'),
+        () => spy('2'),
+        () => spy('3'),
+      ];
+
+      steps.reduce((promise, step) => promise.then(step), Promise.resolve())
+        .then(() => {
+          expect(spy.calls.argsFor(0)).toEqual(['1']);
+          expect(spy.calls.argsFor(1)).toEqual(['2']);
+          expect(spy.calls.argsFor(2)).toEqual(['3']);
+        })
+        .finally(done);
+    });
+
+    it('carries the resolved values through', (done) => {
+      const steps = [
+        (value) => value + ' there',
+        (value) => value + ' my',
+        (value) => value + ' friend!',
+      ];
+
+      steps.reduce((promise, step) => promise.then(step), Promise.resolve('hello'))
+        .then(result => {
+          expect(result).toEqual('hello there my friend!');
+        })
+        .finally(done);
+    });
+
+    it('allows you to catch errors', (done) => {
+      const steps = [
+        () => 'this is fine',
+        () => null.anyoneHome(),
+        () => 'this is also fine'
+      ];
+
+      steps.reduce((promise, step) => promise.then(step), Promise.resolve())
+        .catch(error => {
+          expect(error.name).toEqual('TypeError');
+          expect(error.message).toEqual('Cannot read property \'anyoneHome\' of null');
+        })
+        .finally(done);
+    });
+
+    it('allows you to execute boilerplate around your steps', (done) => {
+      const testFixture = {
+        detectChanges() {},
+        whenStable() { return Promise.resolve() }
+      };
+      const button = {
+        click() { this.clicked = true }
+      };
+      const textField = {
+        enterText(text) { this.text = text; }
+      };
+
+      const steps = [
+        () => textField.enterText('hello'),
+        () => expect(textField.text).toEqual('hello'),
+        () => button.click(),
+        () => expect(button.clicked).toEqual(true)
+      ];
+
+      const executeStepsWithChangeDetection = (promise, step) => {
+        return promise.then(() => {
+          step();
+          testFixture.detectChanges();
+          return testFixture.whenStable();
+        })
+      };
+
+      steps.reduce(executeStepsWithChangeDetection, Promise.resolve())
+        .finally(done);
+    });
+  });
 });
 
