@@ -1,4 +1,3 @@
-
 describe('promise', () => {
   it('gives a value to a handler', (done) => {
     Promise.resolve({some: 'value'})
@@ -19,7 +18,7 @@ describe('promise', () => {
       .finally(done)
   });
 
-  it('then functions are executed in order', (done) => {
+  it('then handlers are executed in order', (done) => {
     let colors = [];
 
     Promise.resolve('purple')
@@ -54,7 +53,7 @@ describe('promise', () => {
         let delayMs = 1000;
         return new Promise(resolve => setTimeout(resolve, delayMs, 'delayed'));
       })
-      .then(value=> {
+      .then(value => {
         expect(value).toEqual('delayed');
       })
       .finally(done)
@@ -99,28 +98,32 @@ describe('promise', () => {
       .finally(done)
   });
 
-  describe('errors returned from then handlers get pass to the immediately next handler', () => {
-    it('then handler', (done) => {
-      Promise.resolve('value')
-        .then(value => new Error('whoops'))
-        .then(error => {
-          expect(error.message).toEqual('whoops');
-        })
-        .catch(error => {
-          console.log('this is skipped');
-          expect(true).toEqual(false);
-        })
-        .finally(done)
-    });
+  it('catches the values of thrown errors', (done) => {
+    Promise.resolve('value')
+      .then(value => {
+        throw new Error('whoops');
+      })
+      .then(() => {
+        console.log('this is skipped');
+        expect(true).toEqual(false);
+      })
+      .catch(error => {
+        expect(error.message).toEqual('whoops');
+      })
+      .finally(done)
+  });
 
-    it('catch handler', (done) => {
-      Promise.resolve('value')
-        .then(value => new Error('whoops'))
-        .catch(error => {
-          expect(error.message).toEqual('whoops');
-        })
-        .finally(done)
-    });
+  it('errors returned from then handlers are treated as resolved values, not rejections or thrown errors', (done) => {
+    Promise.resolve('value')
+      .then(value => new Error('whoops'))
+      .then(error => {
+        expect(error.message).toEqual('whoops');
+      })
+      .catch(error => {
+        console.log('this is skipped');
+        expect(true).toEqual(false);
+      })
+      .finally(done)
   });
 
   describe('reducing to a promise', () => {
@@ -199,6 +202,46 @@ describe('promise', () => {
 
       steps.reduce(executeStepsWithChangeDetection, Promise.resolve())
         .finally(done);
+    });
+  });
+
+  describe('some peculiarities with jasmine', () => {
+    describe('these tests pass because no expectations are executed', () => {
+      it('no catch handler', (done) => {
+        Promise.resolve()
+          .then(() => {
+            null.oops();
+          })
+          .then(() => {
+            expect(false).toEqual(true);
+          })
+          .finally(done)
+      });
+
+      it('catch handler with non-exhaustive expectations', (done) => {
+        Promise.resolve()
+          .then(() => {
+            null.oops();
+          })
+          .catch(() => {
+            return 'i\'m ok with this'
+          })
+          .finally(done)
+      });
+
+      it('catch handler that isnt executed', (done) => {
+        const shouldThrow = jasmine.createSpy('i thought this function would throw an error but my setup was wrong so it didnt')
+          .and.returnValue('didnt expect that to work');
+
+        Promise.resolve()
+          .then(() => {
+            return shouldThrow();
+          })
+          .catch(error => {
+            expect(error.message).toEqual('o noes!');
+          })
+          .finally(done)
+      });
     });
   });
 });
