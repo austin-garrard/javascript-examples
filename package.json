@@ -1,7 +1,6 @@
 {
   "name": "javascript-examples",
   "version": "1.0.0",
-  "main": "index.js",
   "author": "Austin Garrard <agarrard@thoughtworks.com>",
   "license": "MIT",
   "scripts": {
