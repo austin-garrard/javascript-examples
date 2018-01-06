@@ -1,24 +1,6 @@
-let nextOrderNumber = 100;
+import {OrderNumberSequenceGenerator} from './orderNumberSequenceGenerator';
 
-export function OrderNumberSequenceGenerator() {
-  return {
-    next() {
-      let orderNumber = nextOrderNumber;
-      nextOrderNumber += 1;
-      return orderNumber;
-    }
-  }
-}
-
-export function OrderFactory(orderNumberSequenceGenerator) {
-  return {
-    create() {
-      return Order(orderNumberSequenceGenerator.next());
-    }
-  }
-}
-
-export function Order(orderNumber) {
+export function Order() {
   let _items = [];
 
   return {
@@ -28,10 +10,22 @@ export function Order(orderNumber) {
 
     totalPrice() {
       return _items.reduce((totalPrice, item) => totalPrice + item.totalPrice(), 0);
-    },
-
-    number() {
-      return orderNumber;
     }
   };
+}
+
+export function confirm(order) {
+  const number = OrderNumberSequenceGenerator.next();
+
+  return {
+    totalPrice: order.totalPrice,
+
+    number() {
+      return number;
+    },
+
+    receipt() {
+
+    }
+  }
 }
