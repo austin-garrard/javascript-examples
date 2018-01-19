@@ -74,14 +74,29 @@ export const Tortillas = {
   FLOUR: 'flour'
 };
 
-function standardTaco(filling) {
-  return pricey(Taco(filling, Tortillas.CORN, Salsas.MEDIUM, Amount(10)), {
-    price: 4.00
+function receiptable(object, params) {
+  const name = params['name'];
+
+  return Object.assign(object, {
+    receiptName() {
+      return name;
+    }
   });
 }
 
+function cookable(object, params) {
+
+}
+
+function standardTaco(filling) {
+  const priceyTaco = pricey(Taco(filling, Tortillas.CORN, Salsas.MEDIUM, Amount(10)), {
+    price: 4.00
+  });
+  return receiptable(priceyTaco, {name: 'Taco - ' + filling})
+}
+
 export const Tacos = {
-  BARBACOA: standardTaco('beef tongue'),
-  AL_PASTOR: standardTaco('pork'),
-  CHICKEN: standardTaco('chicken')
+  BARBACOA: standardTaco('Barbacoa'),
+  AL_PASTOR: standardTaco('Al Pastor'),
+  CHICKEN: standardTaco('Chicken')
 };

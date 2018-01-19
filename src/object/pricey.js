@@ -17,8 +17,12 @@ export function pricey(object, params) {
       return _price;
     },
 
+    taxes() {
+      return _taxes.reduce((allTaxes, tax) => allTaxes + (tax * _price), 0);
+    },
+
     totalPrice() {
-      return _price + _taxes.reduce((allTaxes, tax) => allTaxes + (tax * _price), 0)
+      return _price + this.taxes();
     }
   });
 }

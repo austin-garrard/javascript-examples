@@ -48,7 +48,22 @@ describe('order', () => {
     });
 
     it('gives the itemized receipt', () => {
+      spyOn(OrderNumberSequenceGenerator, 'next').and.returnValue(108);
+      const order = Order();
+      const taco1 = Tacos.AL_PASTOR;
+      const taco2 = Tacos.BARBACOA;
+      order.add(taco1);
+      order.add(taco2);
 
+      const confirmedOrder = confirm(order);
+
+      expect(confirmedOrder.receipt()).toEqual(
+        'Order #108\n'
+        + '\tTaco - Al Pastor\t4\n'
+        + '\tTaco - Barbacoa\t4\n'
+        + 'Tax:\t0.71\n'
+        + 'Total:\t8.71\n'
+      )
     });
   });
 });

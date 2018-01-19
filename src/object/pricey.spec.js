@@ -14,7 +14,7 @@ describe('pricey', () => {
       price: 10
     });
 
-    expect(thing.totalPrice()).toEqual(10.8875);
+    expect(thing.taxes()).toEqual(.8875);
   });
 
   it('combines the given tax rates', () => {
@@ -23,6 +23,14 @@ describe('pricey', () => {
       taxes: [Taxes.SALES_NY, .1]
     });
 
-    expect(thing.totalPrice()).toEqual(11.8875);
+    expect(thing.taxes()).toEqual(1.8875);
+  });
+
+  it('has a total price', () => {
+    const thing = pricey({}, {
+      price: 10
+    });
+
+    expect(thing.totalPrice()).toEqual(10.8875);
   });
 });
